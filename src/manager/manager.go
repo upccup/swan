@@ -8,6 +8,7 @@ import (
 	"github.com/Dataman-Cloud/swan/src/manager/apiserver"
 	"github.com/Dataman-Cloud/swan/src/manager/event"
 	"github.com/Dataman-Cloud/swan/src/manager/framework"
+	fstore "github.com/Dataman-Cloud/swan/src/manager/framework/store"
 	"github.com/Dataman-Cloud/swan/src/manager/ipam"
 	"github.com/Dataman-Cloud/swan/src/manager/raft"
 	"github.com/Dataman-Cloud/swan/src/manager/sched"
@@ -91,7 +92,9 @@ func New(config util.SwanConfig, db *bolt.DB) (*Manager, error) {
 	manager.resolverSubscriber = event.NewDNSSubscriber(manager.resolver)
 
 	manager.sched = sched.New(manager.config.Scheduler, manager.swanContext)
-	manager.framework, err = framework.New(manager.swanContext, manager.config)
+
+	frameworkStore := fstore.NewStore(db, raftNode)
+	manager.framework, err = framework.New(manager.swanContext, manager.config, frameworkStore)
 	if err != nil {
 		logrus.Errorf("init framework failed. Error: ", err.Error())
 		return nil, err
